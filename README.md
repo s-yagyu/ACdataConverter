@@ -3,7 +3,7 @@
 
 AC dat file converter
 
-2022/07/22 作成
+2022/07/25 作成
 
 ### OverView
 
