@@ -47,9 +47,11 @@ ACdataConverter
 |  |-validationData.xlsx					# output file of ex_converter_list
 |  |-validationData_wo.xlsx					# output file of ex_converter_list
 |
-|--README						# README file
-|--converter_one_file.ipynb		# template for one file
-|--converter_list.ipynb			# template for folder
+|--README								# README file
+|--converter_one_file.ipynb				# template for one file
+|--converter_list.ipynb					# template for folder
+|--converter_one_file_colab.ipynb		# template for one file with google colaboratory
+|--converter_list_colab.ipynb			# template for folder with google colaboratory
 
 
 ```
@@ -57,9 +59,16 @@ ACdataConverter
 
 
 ### Examples
+（1）Local環境（自身のPC）での使用（python(3.7以上)の他に追加で、pandas、scipy、numpy、matplotlib、openpyxl、jupyterのインストールが必要）
 
 - converter_one_file.ipynb:  一つのdatファイルからメタデータ出力、解析値およびグラフ表示
 - converter_list.ipynb: フォルダー内にあるすべてのdatデータを読み込み、メタデータ出力、グラフ表示、帳票作成
+
+（2）google Colaboratoryでの利用
+
+- converter_one_file_for_colab.ipynb:  一つのdatファイルからメタデータ出力、解析値およびグラフ表示
+
+- converter_list_for_colab.ipynb: フォルダー内にあるすべてのdatデータを読み込み、メタデータ出力、グラフ表示、帳票作成
 
 
 
