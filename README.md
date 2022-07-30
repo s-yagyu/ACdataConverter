@@ -149,7 +149,7 @@ PE,0.004750,5,0.50,2520.00,0.05,AC-5,64.00,3.40,6.20,0,0
 
 | 番地   | key_ja                         | key_en                                                      | description                                                  | type  | unit |
 | ------ | ------------------------------ | ----------------------------------------------------------- | ------------------------------------------------------------ | ----- | ---- |
-| A1     | ファイルタイプ                 | File Type                                                   | 装置の設定関連のファイルの区別表記。PE：Phptoemissionのデータ（生データ）等 | str   |      |
+| A1     | ファイルタイプ                 | File Type                                                   | 装置の設定関連のファイルの区別表記。PE：Phtoemissionのデータ（生データ）等 | str   |      |
 | B1     | 不感時間                       | Dead Time                                                   | カウンターの不感時間                                         | float | s    |
 | C1     | 計数時間                       | Counting Time                                               | エネルギー毎の計数時間                                       | float | s    |
 | D1     | べき乗                         | Power Number                                                | グラフ縦軸（計数率のべき乗）のべき乗                         | float |      |
@@ -219,7 +219,7 @@ PE,0.004750,5,0.50,2520.00,0.05,AC-5,64.00,3.40,6.20,0,0
 | Threshold  Energy                                           | thresholdEnergy        |
 | Slope                                                       | slope                  |
 | Background                                                  | bg                     |
-| Energy　(UV Energyと同じ）                                  | uVEnergy               |
+| Energy　(UV Energyと同じ）                                  | uvEnergy               |
 
 ---
 
