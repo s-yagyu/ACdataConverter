@@ -26,13 +26,13 @@ Pythonのバージョンは3.7以上、必要モジュールは、pandas, scipy,
 ```shell
 ACdataConverter
 |
-|--acdatconv 					# main module
+|--acdatconv 				  	# main module
 |  |-__init__.py				# init file
 |  |-datconv.py  				# main program
 |  |-datlib.py 					# Other library
 |  |-validation_excel_read.py	# For read excel
 |
-|--valdationData				# validation data
+|--validationData				# validation data
 |  |-AC2S_off.dat
 |  |-AC2S_off.xlsx
 |  |-AC2S_on.dat
@@ -40,18 +40,18 @@ ACdataConverter
 |  |-AC3_off.dat
 |  |-AC3_off.xlsx
 |
-|--html_output								# output files and examples
+|--html_output								        # output files and examples
 |  |-ex_converter_one_file.html				# example of AC3_off dat reading
-|  |-ex_converter_list.ipynb				# example of read data from validation folder 
+|  |-ex_converter_list.ipynb				  # example of read data from validation folder 
 |  |-ex_converter_one_file_validation.html	# Validation Results
-|  |-validationData.xlsx					# output file of ex_converter_list
-|  |-validationData_wo.xlsx					# output file of ex_converter_list
+|  |-validationData.xlsx					    # output file of ex_converter_list
+|  |-validationData_wo.xlsx					  # output file of ex_converter_list
 |
-|--README								# README file
-|--converter_one_file.ipynb				# template for one file
-|--converter_list.ipynb					# template for folder
+|--README								            # README file
+|--converter_one_file.ipynb				  # template for one file
+|--converter_list.ipynb					    # template for folder
 |--converter_one_file_colab.ipynb		# template for one file with google colaboratory
-|--converter_list_colab.ipynb			# template for folder with google colaboratory
+|--converter_list_colab.ipynb			  # template for folder with google colaboratory
 
 
 ```
