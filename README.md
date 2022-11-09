@@ -270,10 +270,7 @@ $$
 - 単位時間当たりのフォトン数（Number of Photons）
 
 $$
-\begin{align*}
-
-& nPhoton = 0.625*uvIntensity/uvEnergy
-\end{align*}
+nPhoton = 0.625*uvIntensity/uvEnergy
 $$
 
 - 測定のために光量を調節した時の5.9eVの最終光量で規格化したフォトン数を単位フォトン数（Number of photons per unit）とする。
