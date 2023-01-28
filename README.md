@@ -9,9 +9,15 @@
 
 S. Yagyu: Journal of Surface Analysis. 29 [2] (2022) 97-110.
 
-Stremlit Cloudを利用してWebアプリを作成しました。こちらをご利用の方は、下記のURLでdatファイルをアップロードしてみてください。またローカルで利用したい方はアプリの説明の後のインストールからお試しください。
+Stremlit Cloudを利用してWebアプリを作成しました。こちらをご利用の方は、下記のURLでdatファイルをアップロードしてみてください。
+
+https://s-yagyu-acdataconverter-dat-main-j002jh.streamlit.app/
+
+またローカルで利用したい方はアプリの説明の後のインストールからお試しください。
 
 ### AC Dat File Converter (Streamlit アプリ）
+
+https://s-yagyu-acdataconverter-dat-main-j002jh.streamlit.app/
 
 ACシリーズから得られた計測ファイル（拡張子.dat）をアップロードすると、グラフ描画、メタデータの抽出を行うWebサービスです。
 
