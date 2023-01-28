@@ -1,13 +1,48 @@
 
 # ACdataConverter
 
-AC dat file converter
-
-2022/07/25 作成
-
 ### OverView
 
-このプログラムは、理研計器の大気中光電子収量分光装置(ACシリーズ)から出力される計測データファイルから、計測メタデータ、計測補正データをEXCELおよびJSON形式で変換出力するものである。Pythonにより作成されている。
+このプログラムは、理研計器の大気中光電子収量分光装置(ACシリーズ)から出力される計測データファイル（拡張子.dat）から、計測メタデータ、計測補正データをEXCELおよびJSON形式で変換出力するものです。Pythonにより作成されています。メタデータ詳細については、このファイルの後半に記載されています。
+
+このプログラムの詳細は、こちらを参考にしてください。
+
+S. Yagyu: Journal of Surface Analysis. 29 [2] (2022) 97-110.
+
+Stremlit Cloudを利用してWebアプリを作成しました。こちらをご利用の方は、下記のURLでdatファイルをアップロードしてみてください。またローカルで利用したい方はアプリの説明の後のインストールからお試しください。
+
+### AC Dat File Converter (Streamlit アプリ）
+
+ACシリーズから得られた計測ファイル（拡張子.dat）をアップロードすると、グラフ描画、メタデータの抽出を行うWebサービスです。
+
+なお、測定後手動でデータの解析を行っている場合は、その閾値と推定のラインも表示されます。
+
+下にあるダウンロードボタンで各種データを取得することができます。
+
+
+
+<img src="figs/dat01.PNG" alt="dat01" style="zoom:67%;" />
+
+ダウンロードファイルは以下の通りです。
+
+
+
+<img src="figs/dat02.PNG" alt="dat02" style="zoom:60%;" />
+
+- JSONファイル：JSON形式でdatファイルに含まれるメタデータ及び、datデータから計算された結果が含まれています。(メタデータの詳細については後半に記述があります。)
+- PNGファイル：ブラウザーで表示されたグラフの画像ファイルです。
+- CSVファイル：uvEnergy、pyield、npyield、nayield、guidelineのデータが含まれています。各列の説明は以下の通りです。
+
+
+| Key      |                                             | 説明                                                         |
+| -------- | ------------------------------------------- | ------------------------------------------------------------ |
+| uvEnergy | UV Energy                                   | 照射光エネルギー                                             |
+| pyield   | Photoelectron Yield                         | 光電子収率                                                   |
+| npyield  | nth-power Photoelectron Yield               | n乗光電子収率                                                |
+| nayield  | nth-power Photoelectron Yield　for analysis | n乗光電子収率(手動解析に用いるもの、差分補正あり・なしに依存。補正なしではnpyieldと同じ値) |
+| guidline | Fitting line using ReLU function            | Guidline（手動閾値解析後の値による結果）                     |
+
+
 
 
 ### Installation and Required Modules
@@ -15,11 +50,7 @@ AC dat file converter
 プログラムは、こちらのサイトからCloneまたはダウンロードして利用ください。
 
 
-
-
 Pythonのバージョンは3.7以上、必要モジュールは、pandas, scipy, numpy, matplotlib, openpyxl, jupyterです。
-
-
 
 ### Folder Structure
 
@@ -40,19 +71,23 @@ ACdataConverter
 |  |-AC3_off.dat
 |  |-AC3_off.xlsx
 |
-|--html_output								        # output files and examples
+|--html_output								# output files and examples
 |  |-ex_converter_one_file.html				# example of AC3_off dat reading
-|  |-ex_converter_list.ipynb				  # example of read data from validation folder 
+|  |-ex_converter_list.ipynb				# example of read data from validation folder 
 |  |-ex_converter_one_file_validation.html	# Validation Results
-|  |-validationData.xlsx					    # output file of ex_converter_list
-|  |-validationData_wo.xlsx					  # output file of ex_converter_list
+|  |-validationData.xlsx					# output file of ex_converter_list
+|  |-validationData_wo.xlsx					# output file of ex_converter_list
 |
-|--README								            # README file
-|--converter_one_file.ipynb				  # template for one file
-|--converter_list.ipynb					    # template for folder
+|--README								# README file
+|--converter_one_file.ipynb				# template for one file
+|--converter_list.ipynb					# template for folder
 |--converter_one_file_colab.ipynb		# template for one file with google colaboratory
-|--converter_list_colab.ipynb			  # template for folder with google colaboratory
-
+|--converter_list_colab.ipynb			# template for folder with google colaboratory
+|
+|
+|--dat_main.py			  		# Streamlit main program
+|--packages.txt			  		# for Streamlit cloud setting
+|--requirement.txt			 	# for Streamlit cloud setting
 
 ```
 
