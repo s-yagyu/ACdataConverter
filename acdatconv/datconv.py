@@ -385,8 +385,8 @@ class AcConv():
             ax_.axvline(self.estimate_value["thresholdEnergy"], color=plt.rcParams['axes.prop_cycle'].by_key()['color'][2] )
             ax_.text(self.estimate_value["thresholdEnergy"], np.max(self.npyield)*0.3, f'{self.estimate_value["thresholdEnergy"]:.2f}')
 
-            ax_.set_xlabel('Energy')
-            ax_.legend(title=f"Power {self.metadata['uvIntensity59']:.2f} nW")
+            ax_.set_xlabel('Energy [eV]')
+            ax_.legend(title=f"Power {self.metadata['uvIntensity59']:.2f}nW")
             ax_.grid()
             
             if 0.49 < self.metadata["powerNumber"] < 0.51:
