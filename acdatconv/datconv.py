@@ -2,16 +2,16 @@
 AC Series Data Converter
 
 """
-
 import csv
 import json
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 def getEncode(filepath):
-    """Character code automatic judgment function
+    """Automatically determines the encoding of a file.
      If the file name contains Japanese, the encoding method may be Shift-jis.
      Function that returns the encoding method.
 
@@ -21,81 +21,92 @@ def getEncode(filepath):
     Returns:
         encode type(str): encode type
     """
-    encs = "iso-2022-jp euc-jp shift_jis utf-8".split()
-    for enc in encs:
-        with open(filepath, encoding=enc) as fr:
-            try:
-                fr = fr.read()
-            except UnicodeDecodeError:
-                continue
-        return enc
+    encodings = ["iso-2022-jp", "euc-jp", "shift_jis", "utf-8"]
+    for encoding in encodings:
+        try:
+            with open(filepath, encoding=encoding) as file:
+                file.read()
+            return encoding
+        except UnicodeDecodeError:
+            continue
+    raise ValueError(f"Could not determine the encoding of file {filepath}.")
 
 
 class AcConv():
-    """
-    Extraction of measurement metadata and measurement data from the AC.dat file.
+    """Extraction of measurement metadata data from the AC.dat file.
     
-    args:
+    Args:
         file_name (str): .dat filename
 
     Example : 
-        file_name = r'./datafile.dat'
-        acdata = AcConv(file_name)
-        acdata.convert
-        
-        print('metadata')
-        print(acdata.metadata)
-        
-        print('metadata json-type')
-        print(acdata.json)
-   
-        print('pys data by dataframe type')
-        ##### "uvEnergy", "countingCorrection", "photonCorrection", "yield", "nyield", 
-        #####  "guideline", "countingRate","flGrandLevel","flRegLevel","uvIntensity"
-        print(acdata.df)
-        
-        print("user analysis values")
-        print(acdata.estimate_value)
-        
-        print('export dataframe data to csv')
-        acdata.export_df2csv()
-    
-    
+        >>> file_name = "./datafile.dat"
+        >>> ac_converter = AcConverter(file_name)
+        >>> ac_converter.convert()
+        >>>
+        >>> print("metadata")
+        >>> print(ac_converter.metadata)
+        >>> print(ac_converter.metadata.keys())
+        >>> # Keys:
+        >>> # - Original keys (From Dat File)
+        >>> #     "fileType", "deadTime", "countingTime", "powerNumber",
+        >>> #     "anodeVoltage", "step", "model", "yAxisMaximum", "startEnergy",
+        >>> #     "finishEnergy", "flagDifDataGroundLevel", "bgCountingRate", "measureDate", "sampleName",
+        >>> #     "uvIntensity59", "targetUv", "nameLightCorrection", "sensitivity1", "sensitivity2",
+        >>> # - Calculated keys (list type)
+        >>> #     "uvEnergy", "countingCorrection", "photonCorrection", "pyield", "npyield", "nayield", "guideline",
+        >>> #     "countingRate", "flGrandLevel", "flRegLevel", "uvIntensity",
+        >>> # - Manually estimated keys
+        >>> #     "thresholdEnergy", "slope", "yslice", "bg",
+        >>> # - Filename key
+        >>> #     "file_name"
+        >>>
+        >>> print(ac_converter.metadata_wo_calc)
+        >>> print(ac_converter.metadata_wo_calc.keys())
+        >>> # Calculated keys are excluded.
+        >>> # dict_keys([
+        >>> #     'fileType', 'deadTime', 'countingTime', 'powerNumber',
+        >>> #     'anodeVoltage', 'step', 'model', 'yAxisMaximum',
+        >>> #     'startEnergy', 'finishEnergy', 'flagDifDataGroundLevel',
+        >>> #     'bgCountingRate', 'measureDate', 'sampleName', 'uvIntensity59',
+        >>> #     'targetUv', 'nameLightCorrection', 'sensitivity1', 'sensitivity2',
+        >>> #     'thresholdEnergy', 'slope', 'yslice', 'bg', 'file_name'])
+        >>>
+        >>> print('pys data (DataFrame format):')
+        >>> print(ac_converter.df)
+        >>> print(ac_converter.df.columns)
+        >>> # Index([
+        >>> #     'uvEnergy', 'countingCorrection', 'photonCorrection',
+        >>> #     'pyield', 'npyield', 'nayield', 'guideline',
+        >>> #     'countingRate', 'flGrandLevel', 'flRegLevel', 'uvIntensity'],
+        >>> #     dtype='object')
+        >>>
+        >>> print("User analysis values:")
+        >>> print(ac_converter.estimated_value)
+        >>> print(ac_converter.estimated_value.keys())
+        >>> # dict_keys(['thresholdEnergy', 'slope', 'yslice', 'bg'])
+ 
     """
-
     def __init__(self,file_name):
+        """Constructor.
+
+        Args:
+            file_name (str): .dat filename
+        """
         self.file_name = Path(file_name)
         
-    def convert(self,json_export=False):
-        """
-        Attribution
-        
-        - original metadata keys
-        
-        "fileType","deadTime","countingTime","powerNumber","anodeVoltage",
-        "step","model","yAxisMaximum","startEnergy",
-        "finishEnergy","flagDifDataGroundLevel","bgCountingRate",
-        "measureDate","sampleName",
-        "uvIntensity59","targetUv","nameLightCorrection","sensitivity1","sensitivity2"
+    def convert(self):
+        """Converts data and generates metadata, DataFrame, JSON, etc.
 
-        - original data coloum keys
-        
-        "uvEnergy", "countingRate", "flGrandLevel", "flRegLevel","uvIntensity"
- 
-        - fileitional keys
-        
-        "countingCorrection", "photonCorrection", "pyield", "npyield","nayield", "guideline"
-        
-        "estimate_value" include ('thresholdEnergy', 'slope', 'yslice', 'bg')
-        
-        
         """
-        _ = self._read_para()
+        self._read_para()
         self.countingCorrection = self._count_calibration()
         self.photonCorrection = self._photon_calibration()
-        self.pyield, self.npyield = self._pyield_intensity()
-        _ = self.user_estimation()
-        
+        self.ydata, self.npyield = self._pyield_intensity()
+        self.user_estimation()
+        self._make_metadata()
+         
+    def _make_metadata(self):
+        # Original metadata keys
         meta_keys = ["fileType","deadTime","countingTime","powerNumber",
                       "anodeVoltage","step","model","yAxisMaximum","startEnergy",
                       "finishEnergy","flagDifDataGroundLevel","bgCountingRate","measureDate","sampleName",
@@ -106,13 +117,15 @@ class AcConv():
                       self.finishEnergy,self.flagDifDataGroundLevel, self.bgCountingRate,self.measureDate,self.sampleName,
                       self.uvIntensity59,self.targetUv, self.nameLightCorrection, self.sensitivity1,self.sensitivity2]
         
+        # Keys for calculated data (values are lists)
         calc_data_keys = ["uvEnergy", "countingCorrection", "photonCorrection", "pyield", "npyield","nayield", "guideline",
                          "countingRate","flGrandLevel","flRegLevel","uvIntensity"]
         
-        calc_data_values = [self.uvEnergy, self.countingCorrection, self.photonCorrection,self.pyield, self.npyield, self.nayield, self.guideline,
+        calc_data_values = [self.uvEnergy, self.countingCorrection, self.photonCorrection, self.ydata, self.npyield, self.nayield, self.guideline,
                             self.countingRate,self.flGrandLevel,self.flRegLevel,self.uvIntensity]
         calc_data_values_list = [d.tolist() for d in calc_data_values]
         
+        # Filename key
         file_meta ={'file_name':self.file_name.name}
         
         self.metadata = dict(zip(meta_keys + calc_data_keys, meta_values + calc_data_values_list)) 
@@ -121,14 +134,14 @@ class AcConv():
         
         self.calcdata = dict(zip(calc_data_keys,calc_data_values))
         
-        # self.metadata_wo_calc means that the calculated data, which is array data, is not included.
+        # Metadata excluding calculated data
+        # self.metadata_wo_calc: the calculated data, which is array data, is not included.
         self.metadata_wo_calc = dict(zip(meta_keys,meta_values)) 
         self.metadata_wo_calc.update(self.estimate_value)
         self.metadata_wo_calc.update(file_meta)
         
-        
-        self.json = self._json_out(self.metadata)
-        self.df = self._df_out(self.calcdata)
+        self.json = json.dumps(self.metadata)   
+        self.df = pd.DataFrame(self.calcdata)
         
     def _read_para(self):
         # read parameters up to the third line
@@ -176,9 +189,12 @@ class AcConv():
        
        
     def _count_calibration(self):
-        """
-        count_calibration
-        "AC-3" and "AC-2" data do not require count calibration.
+        """Performs counting rate calibration.
+
+        "AC-3" and "AC-2" data do not require counting rate calibration.
+
+        Returns:
+            numpy.ndarray: Calibrated counting rate
         """
         # The "AC-3" and "AC-2" counts do not need to be calibrated.
         if self.model == 'AC-3' or self.model == 'AC-2':
@@ -195,7 +211,11 @@ class AcConv():
         return self.countingCorrection
 
     def _photon_calibration(self):
-        
+        """Performs photon number calibration.
+
+        Returns:
+            numpy.ndarray: Calibrated photon number
+        """
         # number of Photons
         self.nPhoton = 0.625*(self.uvIntensity/self.uvEnergy)
         # number of photons per unit 
@@ -205,20 +225,35 @@ class AcConv():
         return self.photonCorrection
 
     def _pyield_intensity(self):
-        self.pyield = self.countingCorrection/self.photonCorrection
-        self.npyield = np.power(self.pyield, self.powerNumber)
+        """Calculates PYS intensity.
+
+        Returns:
+            tuple (numpy.ndarray, numpy.ndarray): ydata, npyield
+        """
+        self.ydata = self.countingCorrection/self.photonCorrection
+        # Replace negative values with 0
+        self.ydata = np.where(self.ydata < 0, 0, self.ydata)
+        self.npyield = np.power(self.ydata, self.powerNumber)
         
-        # replace Nan to 0
-        self.pyield = np.where(self.pyield < 0, 0, self.pyield)
-        # replace Nan to 0
+        # replace Nan with 0
         self.npyield[np.isnan(self.npyield)] = 0
 
-        return self.pyield, self.npyield
+        return self.ydata, self.npyield
     
     
     @staticmethod
-    @np.vectorize
     def relu(xdata, a, b, bg):
+        """ReLU function.
+
+        Args:
+            xdata (numpy.ndarray): Input data
+            a (float): Slope
+            b (float): y-intercept
+            bg (float): Background value
+
+        Returns:
+            numpy.ndarray: Result of the ReLU function
+        """
         ip = (bg - b)/a
         u = (xdata - ip)
         return a * u * (u > 0.0) + bg
@@ -226,6 +261,17 @@ class AcConv():
     
     @staticmethod
     def user_fit(bg_ydata, reg_xdata, reg_ydata, printf=False):
+        """liner fit function.
+
+        Args:
+            bg_ydata (numpy.ndarray): Background data
+            reg_xdata (numpy.ndarray): Regression data (x)
+            reg_ydata (numpy.ndarray): Regression data (y)
+            printf (bool, optional): Whether to print the results. Defaults to False.
+
+        Returns:
+            dict: Fit parameters ('thresholdEnergy', 'slope', 'yslice', 'bg')
+        """
         
         bg = np.nanmean(bg_ydata)
         popt = np.polyfit(reg_xdata, reg_ydata, 1)
@@ -242,41 +288,39 @@ class AcConv():
         return {'thresholdEnergy': cross_point, 'slope': a,'yslice': b, 'bg':bg}
         
     def user_estimation(self):
-        """ user analized  threshold value
-
+        """ Estimates the threshold value analyzed by the user.
+        
         Returns:
             dict[float]: 'thresholdEnergy', 'slope','yslice','bg'
         """
-        # self.df_data =  self.convert_df()
-
-        bg_flag_ind = np.where(self.flGrandLevel == -1)[0].tolist()
-        reg_flag_ind = np.where(self.flRegLevel == -1)[0].tolist()
+    
+        self.bg_flag_ind = np.where(self.flGrandLevel == -1)[0].tolist()
+        self.reg_flag_ind = np.where(self.flRegLevel == -1)[0].tolist()
         # print( bg_flag_ind, reg_flag_ind)
         
-        if  bg_flag_ind != [] and reg_flag_ind != []:
-            # back ground difference caribration
+        if  self.bg_flag_ind != [] and self.reg_flag_ind != []:
+            # Calibration of background difference
             if self.flagDifDataGroundLevel == -1:
                 # average
-                bg_ave = np.nanmean(self.pyield[bg_flag_ind])
-                c_pys = self.pyield - bg_ave
+                bg_ave = np.nanmean(self.ydata[self.bg_flag_ind])
+                c_pys = self.ydata - bg_ave
                 self.cc_pys = np.where(c_pys < 0, 0, c_pys)
                 self.cc_npys = np.power(self.cc_pys, self.powerNumber)
                 
                 # bg_xdata = self.uvEnergy[bg_flag_ind]
-                bg_ydata = np.array([0.0]*len(bg_flag_ind))
-                reg_xdata = self.uvEnergy[reg_flag_ind]
-                reg_ydata = self.cc_npys[reg_flag_ind]
-                # print(cc_pys)
-            
+                bg_ydata = np.array([0.0]*len(self.bg_flag_ind))
+                reg_xdata = self.uvEnergy[self.reg_flag_ind]
+                reg_ydata = self.cc_npys[self.reg_flag_ind]
+               
             #  elif self.flagDifDataGroundLevel == 0:  
             else:   
                 # bg_xdata = self.uvEnergy[bg_flag_ind]
                 
-                self.cc_pys = self.pyield
+                self.cc_pys = self.ydata
                 self.cc_npys = np.power(self.cc_pys, self.powerNumber)
-                reg_xdata = self.uvEnergy[reg_flag_ind]
-                reg_ydata = self.cc_npys[reg_flag_ind]
-                bg_ydata = self.cc_npys[bg_flag_ind]
+                reg_xdata = self.uvEnergy[self.reg_flag_ind]
+                reg_ydata = self.cc_npys[self.reg_flag_ind]
+                bg_ydata = self.cc_npys[self.bg_flag_ind]
                 
 
             self.estimate_value = AcConv.user_fit(bg_ydata, reg_xdata, reg_ydata, printf=False) 
@@ -290,34 +334,12 @@ class AcConv():
             self.nayield = self.npyield
             self.guideline = np.array([np.nan]*len(self.uvEnergy.tolist()))
 
-            
-    
-
-    def _json_out(self, dict_metadata,export=False):
-        
-        if export:
-            if jsonfile_name is None:
-                jsonfile_name =self.file_name.with_suffix('.json')
-
-            with open(jsonfile_name, 'w') as f:
-                json.dump(dict_metadata, f, indent=4)
-        
-        json_meta = json.dumps(dict_metadata)
-        
-        return json_meta
-
-        
-    def _df_out(self,dict_data):
-        
-        df_temp = pd.DataFrame(dict_data)
-    
-        return df_temp
       
     def export_df2csv(self,df_out_file_name=None):
-        """export Dataframe data to csv
+        """Exports the DataFrame data to a CSV file.
 
         Args:
-            df_out_file_name (str, optional):output filename. Defaults to None.
+            df_out_file_name (str, optional): Output filename. Defaults to None.
         """
         if df_out_file_name is None:
             df_out_file_name =self.file_name.with_suffix('.csv')
@@ -325,10 +347,10 @@ class AcConv():
         self.df.to_csv(df_out_file_name, index=False)
     
     def export_json(self,json_out_file_name=None):
-        """export json
+        """Exports the metadata to a JSON file.
 
         Args:
-            json_out_file_name (str, optional):output filename. Defaults to None.
+            json_out_file_name (str, optional): Output filename. Defaults to None.
         """
         if json_out_file_name is None:
             json_out_file_name =self.file_name.with_suffix('.json')
@@ -336,14 +358,124 @@ class AcConv():
         dict_json = json.loads(self.json)
         with open(json_out_file_name, 'w') as f:
             json.dump(dict_json, f, indent=4)
-        
+    
+    def plot_ax(self, axi=None):
+        """Plots the data.
 
+        Args:
+            axis (matplotlib.axes._subplots.AxesSubplot, optional): 
+            The axis to plot on. Defaults to None.
+
+        Returns:
+            matplotlib.axes._subplots.AxesSubplot: The plotted axis.
+        """
+
+        if axi is None:
+            fig_ = plt.figure()
+            ax_ = fig_.add_subplot(111)
+        else:
+            ax_ = axi
+  
+        ax_.set_title(f'{self.metadata["sampleName"]}')   
+        ax_.plot(self.uvEnergy, self.npyield,'ro',label='Data')
+
+        if  ~np.isnan(self.estimate_value['thresholdEnergy']):
+            ax_.plot(self.uvEnergy,self.guideline, color=plt.rcParams['axes.prop_cycle'].by_key()['color'][2], linestyle = '-', 
+                    label=f'User\nThreshold: {self.estimate_value["thresholdEnergy"]:.2f}eV\nSlope:{self.estimate_value["slope"]:.2f}')
+            ax_.axvline(self.estimate_value["thresholdEnergy"], color=plt.rcParams['axes.prop_cycle'].by_key()['color'][2] )
+            ax_.text(self.estimate_value["thresholdEnergy"], np.max(self.npyield)*0.3, f'{self.estimate_value["thresholdEnergy"]:.2f}')
+
+            ax_.set_xlabel('Energy')
+            ax_.legend(title=f"Power {self.metadata['uvIntensity59']:.2f} nW")
+            ax_.grid()
+            
+            if 0.49 < self.metadata["powerNumber"] < 0.51:
+                ax_.set_ylabel('$PYS^{1/2}$')
+        
+            elif 0.3 < self.metadata["powerNumber"] < 0.35 :
+                ax_.set_ylabel('$PYS^{1/3}$')
+            else:
+                pass
+        
+        if axi is None:
+            plt.show()
+            return 
+        
+        return ax_   
+
+class AdvAcConv(AcConv):
+    """Advanced AC data converter.
+
+    Removes count overflowed data and over 6.8eV data.
+    
+    Note:
+    Light intensity correction above 6.8 eV may not be accurate
+    Measures to prevent detector overflow
+    Raw data: countingRate
+    Calculated value after counting error correction: countingCorrection
+    AC-2, AC-3 Max :2000cps
+    AC-5, AC-2S Max :4000cps
+    
+    """
+    def __init__(self, file_name):
+        super().__init__(file_name)
+    
+    def convert(self):
+        self._read_para()
+        self.countingCorrection = self._count_calibration()
+        self.photonCorrection = self._photon_calibration()
+        self.ydata, self.npyield = self._pyield_intensity()
+        self.user_estimation()
+        self._trim_array_energy()
+        self._trim_array_maxcount()
+        self._make_metadata()
+    
+    def _trim_array_energy(self):
+        """trim array data by max energy at 6.8.
+        """
+        limit_x_value = 6.8
+        trim_max_index = np.argmax(self.uvEnergy >= limit_x_value)
+        self.uvEnergy = self.uvEnergy[:trim_max_index + 1]
+        self.countingCorrection = self.countingCorrection[:trim_max_index + 1]
+        self.countingRate = self.countingRate[:trim_max_index + 1]
+        self.photonCorrection = self.photonCorrection[:trim_max_index + 1] 
+        self.flGrandLevel = self.flGrandLevel[:trim_max_index + 1]
+        self.flRegLevel = self.flRegLevel[:trim_max_index + 1]
+        self.uvIntensity = self.uvIntensity[:trim_max_index + 1] 
+        self.ydata = self.ydata[:trim_max_index + 1]
+        self.npyield = self.npyield[:trim_max_index + 1]
+        self.nayield = self.nayield[:trim_max_index + 1]
+        self.guideline = self.guideline[:trim_max_index + 1]
+    
+    def _trim_array_maxcount(self):
+        """trim array data by max count at 6.8.
+        """
+        if self.model == 'AC-3' or self.model == 'AC-2':
+            limit_countingCorrection = 2000 
+        else:
+            limit_countingCorrection = 4000
+            
+        trim_first_index = np.argmax(self.countingCorrection >= limit_countingCorrection)
+        self.uvEnergy = self.uvEnergy[:trim_first_index + 1]
+        self.countingCorrection = self.countingCorrection[:trim_first_index + 1]
+        self.countingRate = self.countingRate[:trim_first_index + 1]
+        self.photonCorrection = self.photonCorrection[:trim_first_index + 1]   
+        self.flGrandLevel = self.flGrandLevel[:trim_first_index + 1]
+        self.flRegLevel = self.flRegLevel[:trim_first_index + 1]
+        self.uvIntensity = self.uvIntensity[:trim_first_index + 1]
+        self.ydata = self.ydata[:trim_first_index + 1] 
+        self.npyield = self.npyield[:trim_first_index + 1]
+        self.nayield = self.nayield[:trim_first_index + 1]
+        self.guideline = self.guideline[:trim_first_index + 1]
+            
+     
 if __name__ =='__main__':
     pass
-    # fp=r'////.dat'
+    # fp = r'////.dat'
     # fpdata = AcConv(fp) 
     # fpdata.convert()
     # print(fpdata.df)
     # print(fpdata.json)
     # print(fpdata.metadata)
+   
    
