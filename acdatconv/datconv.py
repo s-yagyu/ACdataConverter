@@ -456,17 +456,17 @@ class AdvAcConv(AcConv):
             limit_countingCorrection = 4000
             
         trim_first_index = np.argmax(self.countingCorrection >= limit_countingCorrection)
-        self.uvEnergy = self.uvEnergy[:trim_first_index + 1]
-        self.countingCorrection = self.countingCorrection[:trim_first_index + 1]
-        self.countingRate = self.countingRate[:trim_first_index + 1]
-        self.photonCorrection = self.photonCorrection[:trim_first_index + 1]   
-        self.flGrandLevel = self.flGrandLevel[:trim_first_index + 1]
-        self.flRegLevel = self.flRegLevel[:trim_first_index + 1]
-        self.uvIntensity = self.uvIntensity[:trim_first_index + 1]
-        self.ydata = self.ydata[:trim_first_index + 1] 
-        self.npyield = self.npyield[:trim_first_index + 1]
-        self.nayield = self.nayield[:trim_first_index + 1]
-        self.guideline = self.guideline[:trim_first_index + 1]
+        self.uvEnergy = self.uvEnergy[:trim_first_index]
+        self.countingCorrection = self.countingCorrection[:trim_first_index]
+        self.countingRate = self.countingRate[:trim_first_index]
+        self.photonCorrection = self.photonCorrection[:trim_first_index]   
+        self.flGrandLevel = self.flGrandLevel[:trim_first_index]
+        self.flRegLevel = self.flRegLevel[:trim_first_index]
+        self.uvIntensity = self.uvIntensity[:trim_first_index]
+        self.ydata = self.ydata[:trim_first_index] 
+        self.npyield = self.npyield[:trim_first_index]
+        self.nayield = self.nayield[:trim_first_index]
+        self.guideline = self.guideline[:trim_first_index]
             
      
 if __name__ =='__main__':
