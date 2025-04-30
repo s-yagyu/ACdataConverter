@@ -435,17 +435,22 @@ class AdvAcConv(AcConv):
         """
         limit_x_value = 6.8
         trim_max_index = np.argmax(self.uvEnergy >= limit_x_value)
-        self.uvEnergy = self.uvEnergy[:trim_max_index + 1]
-        self.countingCorrection = self.countingCorrection[:trim_max_index + 1]
-        self.countingRate = self.countingRate[:trim_max_index + 1]
-        self.photonCorrection = self.photonCorrection[:trim_max_index + 1] 
-        self.flGrandLevel = self.flGrandLevel[:trim_max_index + 1]
-        self.flRegLevel = self.flRegLevel[:trim_max_index + 1]
-        self.uvIntensity = self.uvIntensity[:trim_max_index + 1] 
-        self.ydata = self.ydata[:trim_max_index + 1]
-        self.npyield = self.npyield[:trim_max_index + 1]
-        self.nayield = self.nayield[:trim_max_index + 1]
-        self.guideline = self.guideline[:trim_max_index + 1]
+        # If there are no values greater than limit_x_value,
+        # trim_max_index will be 0. To avoid this,
+        # if no values satisfy the condition, use the maximum index of the data.
+        if np.all(self.uvEnergy < limit_x_value):
+            trim_max_index = len(self.uvEnergy) + 1      
+        self.uvEnergy = self.uvEnergy[:trim_max_index]
+        self.countingCorrection = self.countingCorrection[:trim_max_index]
+        self.countingRate = self.countingRate[:trim_max_index]
+        self.photonCorrection = self.photonCorrection[:trim_max_index] 
+        self.flGrandLevel = self.flGrandLevel[:trim_max_index]
+        self.flRegLevel = self.flRegLevel[:trim_max_index]
+        self.uvIntensity = self.uvIntensity[:trim_max_index] 
+        self.ydata = self.ydata[:trim_max_index]
+        self.npyield = self.npyield[:trim_max_index]
+        self.nayield = self.nayield[:trim_max_index]
+        self.guideline = self.guideline[:trim_max_index]
     
     def _trim_array_maxcount(self):
         """trim array data by max count at 6.8.
@@ -456,6 +461,10 @@ class AdvAcConv(AcConv):
             limit_countingCorrection = 4000
             
         trim_first_index = np.argmax(self.countingCorrection >= limit_countingCorrection)
+
+        if np.all(self.countingCorrection < limit_countingCorrection):
+            trim_first_index = len(self.countingCorrection) + 1
+        
         self.uvEnergy = self.uvEnergy[:trim_first_index]
         self.countingCorrection = self.countingCorrection[:trim_first_index]
         self.countingRate = self.countingRate[:trim_first_index]
@@ -477,5 +486,4 @@ if __name__ =='__main__':
     # print(fpdata.df)
     # print(fpdata.json)
     # print(fpdata.metadata)
-   
-   
+
