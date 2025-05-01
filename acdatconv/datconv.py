@@ -390,10 +390,10 @@ class AcConv():
             ax_.grid()
             
             if 0.49 < self.metadata["powerNumber"] < 0.51:
-                ax_.set_ylabel('$PYS^{1/2}$')
+                ax_.set_ylabel('Photoelectron yield$^{1/2}$ [arb.unit]')
         
             elif 0.3 < self.metadata["powerNumber"] < 0.35 :
-                ax_.set_ylabel('$PYS^{1/3}$')
+                ax_.set_ylabel('Photoelectron yield$^{1/3}$ [arb.unit]')
             else:
                 pass
         
