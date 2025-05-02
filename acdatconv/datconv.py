@@ -433,7 +433,7 @@ class AdvAcConv(AcConv):
     def _trim_array_energy(self):
         """trim array data by max energy at 6.8.
         """
-        limit_x_value = 6.8
+        limit_x_value = 6.81
         trim_max_index = np.argmax(self.uvEnergy >= limit_x_value)
         # If there are no values greater than limit_x_value,
         # trim_max_index will be 0. To avoid this,
@@ -453,7 +453,7 @@ class AdvAcConv(AcConv):
         self.guideline = self.guideline[:trim_max_index]
     
     def _trim_array_maxcount(self):
-        """trim array data by max count at 6.8.
+        """trim array data by max countingCorrection
         """
         if self.model == 'AC-3' or self.model == 'AC-2':
             limit_countingCorrection = 2000 
